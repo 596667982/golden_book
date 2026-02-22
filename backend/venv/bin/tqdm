@@ -1,4 +1,4 @@
-#!/Users/box/exercise-app/backend/venv/bin/python3.12
+#!/Users/box/github/golden-book/backend/venv/bin/python3.13
 # -*- coding: utf-8 -*-
 import re
 import sys
