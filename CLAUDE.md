@@ -8,6 +8,30 @@ Golden Book (练习册电子化app) is an exercise book digitization application
 
 ## Development Commands
 
+### Quick Start with Automation Scripts
+
+**Deploy project (first time setup):**
+```bash
+./deploy.sh
+```
+
+**Start services:**
+```bash
+./start.sh
+```
+
+**Stop services:**
+```bash
+./stop.sh
+```
+
+**Package for deployment:**
+```bash
+./package.sh
+```
+
+See `DEPLOYMENT.md` for detailed deployment instructions.
+
 ### Backend (FastAPI + SQLAlchemy)
 ```bash
 cd backend

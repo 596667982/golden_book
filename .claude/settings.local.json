@@ -11,7 +11,10 @@
       "Bash(venv/bin/uvicorn main:app --reload)",
       "Bash(lsof:*)",
       "Bash(xargs kill:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(chmod:*)",
+      "Bash(ls:*)",
+      "Bash(tar:*)"
     ]
   }
 }
