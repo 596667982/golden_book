@@ -8,6 +8,7 @@ export interface AIConfig {
 }
 export interface Exam {
   id: number; title: string; description?: string; status: string
+  category?: string; grade?: number
   created_at: string; question_count?: number; exercise_image_count?: number
   exercise_image_paths?: string[]; answer_image_path?: string; questions?: Question[]
 }
@@ -45,7 +46,7 @@ export const aiConfigApi = {
 
 // Exams
 export const examApi = {
-  list: () => http.get<Exam[]>('/exams').then(r => r.data),
+  list: (params?: { category?: string; grade?: number }) => http.get<Exam[]>('/exams', { params }).then(r => r.data),
   get: (id: number) => http.get<Exam>(`/exams/${id}`).then(r => r.data),
   create: (d: {title: string; description?: string}) => http.post<Exam>('/exams', d).then(r => r.data),
   update: (id: number, d: Partial<Exam>) => http.put<Exam>(`/exams/${id}`, d).then(r => r.data),

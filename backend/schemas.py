@@ -67,16 +67,22 @@ class QuestionOut(BaseModel):
 class ExamCreate(BaseModel):
     title: str
     description: Optional[str] = None
+    category: Optional[str] = None
+    grade: Optional[int] = None
 
 class ExamUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     status: Optional[str] = None
+    category: Optional[str] = None
+    grade: Optional[int] = None
 
 class ExamOut(BaseModel):
     id: int
     title: str
     description: Optional[str]
+    category: Optional[str]
+    grade: Optional[int]
     exercise_image_paths: Optional[list[str]]
     answer_image_path: Optional[str]
     status: str
@@ -89,6 +95,8 @@ class ExamSimpleOut(BaseModel):
     id: int
     title: str
     description: Optional[str]
+    category: Optional[str]
+    grade: Optional[int]
     exercise_image_paths: Optional[list[str]]
     answer_image_path: Optional[str]
     status: str
@@ -100,6 +108,8 @@ class ExamListOut(BaseModel):
     id: int
     title: str
     description: Optional[str]
+    category: Optional[str]
+    grade: Optional[int]
     status: str
     created_at: datetime
     question_count: int = 0

@@ -25,6 +25,8 @@ class Exam(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     exercise_image_paths: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)  # List of image filenames
     answer_image_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    category: Mapped[str | None] = mapped_column(String(20), nullable=True)  # 语文 | 数学 | 英语
+    grade: Mapped[int | None] = mapped_column(Integer, nullable=True)  # 6-12
     status: Mapped[str] = mapped_column(String(20), default="draft")  # draft | ready
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

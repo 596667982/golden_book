@@ -7,8 +7,22 @@
           <el-button type="primary" @click="showUpload = true">上传练习册</el-button>
         </div>
       </template>
+
+      <div style="margin-bottom:16px;display:flex;gap:12px">
+        <el-select v-model="filterCategory" placeholder="科目" clearable style="width:120px" @change="load">
+          <el-option v-for="c in categories" :key="c" :label="c" :value="c" />
+        </el-select>
+        <el-select v-model="filterGrade" placeholder="年级" clearable style="width:120px" @change="load">
+          <el-option v-for="g in grades" :key="g.value" :label="g.label" :value="g.value" />
+        </el-select>
+      </div>
+
       <el-table :data="exams" v-loading="loading">
         <el-table-column prop="title" label="标题" />
+        <el-table-column prop="category" label="科目" width="80" />
+        <el-table-column prop="grade" label="年级" width="80">
+          <template #default="{row}">{{ row.grade ? `${row.grade}年级` : '-' }}</template>
+        </el-table-column>
         <el-table-column prop="exercise_image_count" label="图片数" width="80" />
         <el-table-column prop="question_count" label="题目数" width="80" />
         <el-table-column prop="status" label="状态" width="100">
@@ -39,6 +53,14 @@
 
       <div v-if="step === 0">
         <el-input v-model="examTitle" placeholder="练习册名称" style="margin-bottom:12px" />
+        <div style="display:flex;gap:12px;margin-bottom:12px">
+          <el-select v-model="examCategory" placeholder="科目（可选）" clearable style="flex:1">
+            <el-option v-for="c in categories" :key="c" :label="c" :value="c" />
+          </el-select>
+          <el-select v-model="examGrade" placeholder="年级（可选）" clearable style="flex:1">
+            <el-option v-for="g in grades" :key="g.value" :label="g.label" :value="g.value" />
+          </el-select>
+        </div>
         <el-upload
           drag
           :auto-upload="false"
@@ -84,24 +106,37 @@ import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { examApi, uploadApi, type Exam } from '@/api'
 
+const categories = ['语文', '数学', '英语']
+const grades = [
+  { value: 6, label: '六年级' },
+  { value: 7, label: '初一' }, { value: 8, label: '初二' }, { value: 9, label: '初三' },
+  { value: 10, label: '高一' }, { value: 11, label: '高二' }, { value: 12, label: '高三' },
+]
+
 const exams = ref<Exam[]>([])
 const loading = ref(false)
 const showUpload = ref(false)
 const step = ref(0)
 const uploading = ref(false)
 const examTitle = ref('新练习册')
+const examCategory = ref<string | undefined>(undefined)
+const examGrade = ref<number | undefined>(undefined)
 const fileList = ref<any[]>([])
 const answerFile = ref<File | null>(null)
 const currentExamId = ref<number | null>(null)
 const parseResult = ref<any>(null)
+const filterCategory = ref<string | undefined>(undefined)
+const filterGrade = ref<number | undefined>(undefined)
 
 async function load() {
   loading.value = true
-  exams.value = await examApi.list().finally(() => loading.value = false)
+  exams.value = await examApi.list({
+    category: filterCategory.value,
+    grade: filterGrade.value,
+  }).finally(() => loading.value = false)
 }
 
 function onExerciseChange(file: any, files: any[]) {
-  console.log('[DEBUG] onExerciseChange, file:', file, 'files count:', files.length)
   fileList.value = files
 }
 
@@ -114,23 +149,20 @@ function onAnswerChange(f: any) { answerFile.value = f.raw }
 async function nextStep() {
   if (step.value === 0) {
     if (fileList.value.length === 0) return ElMessage.warning('请选择练习题图片')
-    console.log('[DEBUG] Uploading', fileList.value.length, 'images')
     uploading.value = true
     try {
-      // Upload first image to create exam
-      console.log('[DEBUG] Uploading image 1:', fileList.value[0].name)
       const res = await uploadApi.exercise(fileList.value[0].raw)
       currentExamId.value = res.exam_id
-      await examApi.update(res.exam_id, { title: examTitle.value })
-      // Upload remaining images
+      await examApi.update(res.exam_id, {
+        title: examTitle.value,
+        category: examCategory.value,
+        grade: examGrade.value,
+      })
       for (let i = 1; i < fileList.value.length; i++) {
-        console.log('[DEBUG] Uploading image', i + 1, ':', fileList.value[i].name)
-        const addRes = await uploadApi.addExercise(res.exam_id, fileList.value[i].raw)
-        console.log('[DEBUG] Added, total images:', addRes.total_images)
+        await uploadApi.addExercise(res.exam_id, fileList.value[i].raw)
       }
       step.value = 1
     } catch (e) {
-      console.error('[DEBUG] Upload error:', e)
       ElMessage.error('上传失败')
     }
     finally { uploading.value = false }
@@ -149,6 +181,8 @@ async function nextStep() {
     fileList.value = []
     answerFile.value = null
     parseResult.value = null
+    examCategory.value = undefined
+    examGrade.value = undefined
     await load()
   }
 }

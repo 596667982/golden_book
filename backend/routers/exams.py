@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
+from typing import Optional
 from sqlalchemy.orm import selectinload
 from database import get_db
 from models import Exam, Question
@@ -10,8 +11,18 @@ router = APIRouter(prefix="/api/exams", tags=["exams"])
 
 
 @router.get("", response_model=list[ExamListOut])
-async def list_exams(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Exam).order_by(Exam.created_at.desc()))
+async def list_exams(
+    category: Optional[str] = Query(None),
+    grade: Optional[int] = Query(None),
+    db: AsyncSession = Depends(get_db)
+):
+    stmt = select(Exam)
+    if category:
+        stmt = stmt.where(Exam.category == category)
+    if grade is not None:
+        stmt = stmt.where(Exam.grade == grade)
+    stmt = stmt.order_by(Exam.created_at.desc())
+    result = await db.execute(stmt)
     exams = result.scalars().all()
     out = []
     for exam in exams:
@@ -20,6 +31,7 @@ async def list_exams(db: AsyncSession = Depends(get_db)):
         img_count = len(exam.exercise_image_paths) if exam.exercise_image_paths else 0
         out.append(ExamListOut(
             id=exam.id, title=exam.title, description=exam.description,
+            category=exam.category, grade=exam.grade,
             status=exam.status, created_at=exam.created_at, question_count=count,
             exercise_image_count=img_count
         ))

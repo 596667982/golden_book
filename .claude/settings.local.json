@@ -14,7 +14,12 @@
       "Bash(curl:*)",
       "Bash(chmod:*)",
       "Bash(ls:*)",
-      "Bash(tar:*)"
+      "Bash(tar:*)",
+      "Bash(cd /Users/box/github/golden-book/backend && source venv/bin/activate && python -c \"\nimport sqlite3, glob\ndbs = glob.glob\\('*.db'\\) + glob.glob\\('*.sqlite'\\)\nprint\\('found:', dbs\\)\n\")",
+      "Bash(sqlite3 app.db \"PRAGMA table_info\\(exams\\);\")",
+      "Bash(sqlite3 /Users/box/github/golden-book/backend/app.db \"ALTER TABLE exams ADD COLUMN category VARCHAR\\(20\\); ALTER TABLE exams ADD COLUMN grade INTEGER;\")",
+      "Bash(sqlite3 /Users/box/github/golden-book/backend/app.db \"PRAGMA table_info\\(exams\\);\")",
+      "Bash(source venv/bin/activate && python -c \"from models import *; print\\('models ok'\\)\" 2>&1)"
     ]
   }
 }
