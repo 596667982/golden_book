@@ -12,15 +12,15 @@
           <div v-math="currentQ.content" style="font-size:16px;margin-bottom:16px"></div>
 
           <!-- Single choice -->
-          <el-radio-group v-if="currentQ.question_type === 'single'" v-model="answers[currentQ.id]">
-            <el-radio v-for="(v, k) in currentQ.options" :key="k" :value="k" style="display:block;margin:8px 0">
+          <el-radio-group v-if="currentQ.question_type === 'single'" v-model="answers[currentQ.id]" class="options-group">
+            <el-radio v-for="(v, k) in currentQ.options" :key="k" :value="k" class="option-item">
               <span>{{ k }}. </span><span v-math="v"></span>
             </el-radio>
           </el-radio-group>
 
           <!-- Multi choice -->
-          <el-checkbox-group v-else-if="currentQ.question_type === 'multi'" v-model="multiAnswers[currentQ.id]">
-            <el-checkbox v-for="(v, k) in currentQ.options" :key="k" :value="k" style="display:block;margin:8px 0">
+          <el-checkbox-group v-else-if="currentQ.question_type === 'multi'" v-model="multiAnswers[currentQ.id]" class="options-group">
+            <el-checkbox v-for="(v, k) in currentQ.options" :key="k" :value="k" class="option-item">
               <span>{{ k }}. </span><span v-math="v"></span>
             </el-checkbox>
           </el-checkbox-group>
@@ -183,5 +183,20 @@ onMounted(async () => {
   padding: 0 !important;
   min-width: 32px !important;
   margin: 0 !important;
+}
+
+.options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.option-item {
+  display: flex !important;
+  align-items: flex-start;
+  margin: 0 !important;
+  height: auto !important;
+  white-space: normal;
 }
 </style>
