@@ -85,4 +85,5 @@ export const sessionApi = {
   submitAll: (examId: number, answers: Record<number, string>) =>
     http.post<Session>('/sessions/submit-all', { exam_id: examId, answers }).then(r => r.data),
   results: (id: number) => http.get<Session>(`/sessions/${id}/results`).then(r => r.data),
+  delete: (id: number) => http.delete(`/sessions/${id}`),
 }

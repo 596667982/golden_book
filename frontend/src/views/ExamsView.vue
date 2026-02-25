@@ -51,7 +51,7 @@
         <el-step title="AI 解析" />
       </el-steps>
 
-      <div v-if="step === 0">
+      <div v-show="step === 0">
         <el-input v-model="examTitle" placeholder="练习册名称" style="margin-bottom:12px" />
         <div style="display:flex;gap:12px;margin-bottom:12px">
           <el-select v-model="examCategory" placeholder="科目（可选）" clearable style="flex:1">
@@ -75,14 +75,14 @@
         </el-upload>
       </div>
 
-      <div v-if="step === 1">
+      <div v-show="step === 1">
         <el-upload drag :auto-upload="false" :on-change="onAnswerChange" accept="image/*">
           <el-icon style="font-size:48px"><UploadFilled /></el-icon>
           <div>拖拽或点击上传答案图片（可选）</div>
         </el-upload>
       </div>
 
-      <div v-if="step === 2">
+      <div v-show="step === 2">
         <el-result v-if="parseResult" icon="success" title="解析完成" :sub-title="`共识别 ${parseResult.questions?.length ?? 0} 道题目`" />
         <div v-else style="text-align:center;padding:24px">
           <el-icon class="is-loading" style="font-size:32px"><Loading /></el-icon>

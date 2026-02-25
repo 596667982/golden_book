@@ -1,7 +1,7 @@
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
 from database import get_db
 from models import Exam, Question, ExamSession, SessionAnswer
@@ -216,3 +216,13 @@ async def submit_all_answers(data: SessionSubmitAll, db: AsyncSession = Depends(
         .options(selectinload(ExamSession.answers))
     )
     return result.scalar_one()
+
+
+@router.delete("/{session_id}", status_code=204)
+async def delete_session(session_id: int, db: AsyncSession = Depends(get_db)):
+    session = await db.get(ExamSession, session_id)
+    if not session:
+        raise HTTPException(404, "Session not found")
+    await db.execute(delete(SessionAnswer).where(SessionAnswer.session_id == session_id))
+    await db.delete(session)
+    await db.commit()
