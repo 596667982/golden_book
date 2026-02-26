@@ -1,4 +1,5 @@
 """Auto-grading logic for objective question types."""
+from __future__ import annotations
 from datetime import datetime
 from models import Question, SessionAnswer
 
