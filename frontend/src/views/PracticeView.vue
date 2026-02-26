@@ -1,6 +1,6 @@
 <template>
   <div v-if="exam">
-    <el-page-header @back="$router.push('/exams')" :content="`答题 - ${exam.title}`" style="margin-bottom:16px" />
+    <el-page-header @back="$router.push(route.query.from === 'practice' ? '/practice' : '/exams')" :content="`答题 - ${exam.title}`" style="margin-bottom:16px" />
     <el-row :gutter="16">
       <el-col :span="16">
         <el-card v-if="currentQ">

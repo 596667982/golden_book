@@ -26,7 +26,7 @@
             <el-button
               type="primary"
               :disabled="row.status !== 'ready'"
-              @click="$router.push(`/exams/${row.id}/practice`)"
+              @click="$router.push(`/exams/${row.id}/practice?from=practice`)"
             >开始答题</el-button>
           </template>
         </el-table-column>
