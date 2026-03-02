@@ -82,4 +82,4 @@ echo ""
 print_info "停止服务: ./stop.sh"
 echo ""
 
-npm run dev
+npm run dev -- --host 0.0.0.0
