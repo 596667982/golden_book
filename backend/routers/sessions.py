@@ -1,5 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
@@ -20,6 +21,18 @@ async def list_sessions(db: AsyncSession = Depends(get_db)):
         .order_by(ExamSession.started_at.desc())
     )
     return result.scalars().all()
+
+
+@router.get("/exam/{exam_id}/in-progress", response_model=Optional[SessionOut])
+async def get_in_progress_session(exam_id: int, db: AsyncSession = Depends(get_db)):
+    """Get the in-progress session for an exam, if any"""
+    result = await db.execute(
+        select(ExamSession)
+        .where(ExamSession.exam_id == exam_id, ExamSession.status == "in_progress")
+        .options(selectinload(ExamSession.answers))
+        .order_by(ExamSession.started_at.desc())
+    )
+    return result.scalars().first()
 
 
 @router.post("", response_model=SessionOut)

@@ -75,6 +75,7 @@ export const uploadApi = {
 // Sessions
 export const sessionApi = {
   list: () => http.get<Session[]>('/sessions').then(r => r.data),
+  getInProgress: (examId: number) => http.get<Session | null>(`/sessions/exam/${examId}/in-progress`).then(r => r.data),
   start: (examId: number) => http.post<Session>('/sessions', { exam_id: examId }).then(r => r.data),
   get: (id: number) => http.get<Session>(`/sessions/${id}`).then(r => r.data),
   submitAnswer: (sessionId: number, questionId: number, answer: string) =>

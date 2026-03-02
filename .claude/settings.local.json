@@ -20,7 +20,8 @@
       "Bash(sqlite3 /Users/box/github/golden-book/backend/app.db \"ALTER TABLE exams ADD COLUMN category VARCHAR\\(20\\); ALTER TABLE exams ADD COLUMN grade INTEGER;\")",
       "Bash(sqlite3 /Users/box/github/golden-book/backend/app.db \"PRAGMA table_info\\(exams\\);\")",
       "Bash(source venv/bin/activate && python -c \"from models import *; print\\('models ok'\\)\" 2>&1)",
-      "Bash(./start.sh)"
+      "Bash(./start.sh)",
+      "Bash(git add -A && git status)"
     ]
   }
 }

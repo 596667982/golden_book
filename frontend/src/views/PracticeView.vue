@@ -29,9 +29,9 @@
           <el-input v-else v-model="answers[currentQ.id]" :type="currentQ.question_type === 'subjective' ? 'textarea' : 'text'" :rows="4" placeholder="请输入答案" />
 
           <div style="margin-top:24px;display:flex;gap:8px">
-            <el-button :disabled="currentIndex === 0" @click="currentIndex--">上一题</el-button>
-            <el-button v-if="currentIndex < questions.length - 1" type="primary" @click="currentIndex++">下一题</el-button>
-            <el-button v-else type="success" :loading="submitting" @click="previewSubmit">提交答卷</el-button>
+            <el-button :disabled="currentIndex === 0 || saving" :loading="saving" @click="currentIndex--">上一题</el-button>
+            <el-button v-if="currentIndex < questions.length - 1" type="primary" :loading="saving" @click="currentIndex++">下一题</el-button>
+            <el-button v-else type="success" :loading="submitting || saving" @click="previewSubmit">提交答卷</el-button>
           </div>
         </el-card>
       </el-col>
@@ -43,6 +43,7 @@
               v-for="(q, i) in questions" :key="q.id"
               :type="hasAnswer(q) ? 'primary' : 'default'"
               size="small" circle
+              :disabled="saving"
               @click="currentIndex = i"
             >{{ i + 1 }}</el-button>
           </div>
@@ -97,10 +98,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { examApi, sessionApi, type Exam, type Question, type PreviewGradeResult } from '@/api'
+import { examApi, sessionApi, type Exam, type Question, type Session, type PreviewGradeResult } from '@/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -112,6 +113,8 @@ const multiAnswers = ref<Record<number, string[]>>({})
 const submitting = ref(false)
 const showPreview = ref(false)
 const previewResult = ref<PreviewGradeResult | null>(null)
+const session = ref<Session | null>(null)
+const saving = ref(false)
 
 const currentQ = computed(() => questions.value[currentIndex.value])
 const typeLabel = (t: string) => ({ single: '单选', multi: '多选', fill: '填空', subjective: '主观' }[t] ?? t)
@@ -123,7 +126,86 @@ function getAnswer(q: Question): string {
   return answers.value[q.id] ?? ''
 }
 
+// Load answers from session
+function loadAnswersFromSession(sess: Session) {
+  for (const ans of sess.answers) {
+    const q = questions.value.find(q => q.id === ans.question_id)
+    if (!q) continue
+    if (q.question_type === 'multi') {
+      multiAnswers.value[q.id] = ans.student_answer?.split(',').filter(Boolean) ?? []
+    } else {
+      answers.value[q.id] = ans.student_answer ?? ''
+    }
+  }
+}
+
+// Save current question answer
+async function saveCurrentAnswer() {
+  if (!session.value || !currentQ.value || saving.value) return
+  const answer = getAnswer(currentQ.value)
+  // Check if answer changed
+  const existingAnswer = session.value.answers.find(a => a.question_id === currentQ.value.id)
+  if (existingAnswer?.student_answer === answer) return // No change
+
+  saving.value = true
+  try {
+    await sessionApi.submitAnswer(session.value.id, currentQ.value.id, answer)
+    // Update local session state
+    if (existingAnswer) {
+      existingAnswer.student_answer = answer
+    } else {
+      session.value.answers.push({
+        id: 0, // Will be set by backend
+        question_id: currentQ.value.id,
+        student_answer: answer
+      })
+    }
+  } catch (e: any) {
+    console.error('Failed to save answer:', e)
+  } finally {
+    saving.value = false
+  }
+}
+
+// Watch for question changes and save previous answer
+let lastSavedIndex = -1
+watch(currentIndex, async (newIdx, oldIdx) => {
+  if (oldIdx !== undefined && oldIdx !== newIdx && lastSavedIndex !== oldIdx) {
+    lastSavedIndex = oldIdx
+    const prevQ = questions.value[oldIdx]
+    if (!prevQ || !session.value) return
+
+    const answer = prevQ.question_type === 'multi'
+      ? (multiAnswers.value[prevQ.id] ?? []).sort().join(',')
+      : (answers.value[prevQ.id] ?? '')
+
+    const existingAnswer = session.value.answers.find(a => a.question_id === prevQ.id)
+    if (existingAnswer?.student_answer === answer) return
+
+    saving.value = true
+    try {
+      await sessionApi.submitAnswer(session.value.id, prevQ.id, answer)
+      if (existingAnswer) {
+        existingAnswer.student_answer = answer
+      } else {
+        session.value.answers.push({
+          id: 0,
+          question_id: prevQ.id,
+          student_answer: answer
+        })
+      }
+    } catch (e: any) {
+      console.error('Failed to save answer:', e)
+    } finally {
+      saving.value = false
+    }
+  }
+})
+
 async function previewSubmit() {
+  // Save current answer before preview
+  await saveCurrentAnswer()
+
   submitting.value = true
   try {
     // Collect all answers
@@ -165,6 +247,17 @@ onMounted(async () => {
   const id = Number(route.params.id)
   exam.value = await examApi.get(id)
   questions.value = exam.value.questions ?? []
+
+  // Check for in-progress session
+  const inProgressSession = await sessionApi.getInProgress(id)
+  if (inProgressSession) {
+    session.value = inProgressSession
+    loadAnswersFromSession(inProgressSession)
+    ElMessage.success('已加载上次未完成的答题记录')
+  } else {
+    // Create new session
+    session.value = await sessionApi.start(id)
+  }
 })
 </script>
 
